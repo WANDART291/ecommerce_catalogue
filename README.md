@@ -132,8 +132,9 @@ Transaction safety
 
 Run tests with:
 
-bash
-Copy code
+docker compose exec web python manage.py test catalogue
+
+
 docker compose exec web python manage.py test catalogue
 👨‍💻 Author
 Wandile Khanyile
