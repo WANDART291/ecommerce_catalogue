@@ -135,7 +135,8 @@ Run tests with:
 docker compose exec web python manage.py test catalogue
 
 
-docker compose exec web python manage.py test catalogue
+
+
 👨‍💻 Author
 Wandile Khanyile
 Built with production-readiness in mind 🚀
