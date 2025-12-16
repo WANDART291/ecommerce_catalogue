@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # 1. The Database
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=ecommerce_nexus
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin123
+    ports:
+      - "5433:5432"  # Maps port 5432 inside to 5433 outside (to avoid conflict with your local Postgres)
+
+  # 2. The Cache & Broker
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # 3. The Django App
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - REDIS_HOST=redis
+    depends_on:
+      - db
+      - redis
+
+  # 4. The Background Worker
+  celery:
+    build: .
+    command: celery -A config worker -l info
+    volumes:
+      - .:/app
+    environment:
+      - DB_HOST=db
+      - REDIS_HOST=redis
+    depends_on:
+      - web
+      - redis
+
+volumes:
+  postgres_data:
