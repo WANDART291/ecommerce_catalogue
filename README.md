@@ -71,10 +71,6 @@ ecommerce_catalogue/
 
 A **production-grade, headless E-commerce backend** built for **reliability, concurrency safety, and seamless payments**.
 
-![Status](https://img.shields.io/badge/Status-Active_Development-success)
-![Python](https://img.shields.io/badge/Python-3.11-blue)
-![Django](https://img.shields.io/badge/Django-5.0-green)
-![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED)
 
 ---
 
