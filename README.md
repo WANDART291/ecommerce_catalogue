@@ -67,10 +67,7 @@ ecommerce_catalogue/
 
 
 
-![Status](https://img.shields.io/badge/Status-Active_Development-success)
-![Python](https://img.shields.io/badge/Python-3.11-blue)
-![Django](https://img.shields.io/badge/Django-5.0-green)
-![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED)
+
 
 ---
 
@@ -129,9 +126,18 @@ ecommerce_catalogue/
 │   └── views.py        # Payment verification & atomic transactions
 ├── docker-compose.yml  # Docker services (Web, DB, Redis, Celery)
 └── requirements.txt    # Dependencies
-🏁 Getting StartedPrerequisitesDocker Desktop installedGit1️⃣ Clone the RepoBashgit clone [https://github.com/YOUR_GITHUB_USERNAME/ecommerce_catalogue.git](https://github.com/YOUR_GITHUB_USERNAME/ecommerce_catalogue.git)
+🏁 Getting Started
+Prerequisites
+Docker Desktop installed
+Git
+1️⃣ Clone the Repo
+git clone [https://github.com/YOUR_GITHUB_USERNAME/ecommerce_catalogue.git](https://github.com/YOUR_GITHUB_USERNAME/ecommerce_catalogue.git)
 cd ecommerce_catalogue
 2️⃣ Run with DockerThis command spins up the Django Server, PostgreSQL, Redis, and Celery Worker automatically.Bashdocker compose up --build
 3️⃣ Create SuperuserOnce the containers are running, create an admin account to manage the catalogue.Bashdocker compose exec web python manage.py createsuperuser
-🔌 API Endpoints (Quick Reference)MethodEndpointDescriptionGET/api/docs/Swagger UI (Full Documentation)GET/api/v1/catalogue/products/List all productsPOST/api/v1/cart/Create a shopping cartPOST/api/v1/orders/Place an order (Locks inventory)POST/api/v1/payment/initiate/{id}/Get Chapa Payment LinkGET/api/v1/payment/verify/{ref}/Verify Payment & Send Receipt🧪 TestingTo run the automated test suite inside the container:Bashdocker compose exec web python manage.py test
+
+🔌 API Endpoints (Quick Reference)MethodEndpointDescriptionGET/api/docs/Swagger UI (Full Documentation)GET/api/v1/catalogue/products/List all productsPOST/api/v1/cart/Create a shopping cartPOST/api/v1/orders/Place an order (Locks inventory)POST/api/v1/payment/initiate/{id}/Get Chapa Payment LinkGET/api/v1/payment/verify/{ref}/Verify Payment & Send Receipt
+🧪 TestingTo run the automated test suite inside the container:
+Bashdocker compose exec web python manage.py test
+
 👨‍💻 AuthorWandile Khanyile - Backend DeveloperBuilt with Django, Docker, and Coffee ☕
