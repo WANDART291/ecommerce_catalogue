@@ -65,14 +65,7 @@ ecommerce_catalogue/
 ├── docker-compose.yml  # Docker services (Web, DB, Redis, Celery)
 └── requirements.txt    # Dependencies
 
-This is a very smart move. A high-quality README.md is what separates "student projects" from "professional portfolios." Recruiters often look at the README before looking at the code.Since we just added Payments (Chapa) and Email Notifications (Celery), we need to add those to the documentation so people know this is a fully functional e-commerce backend, not just a catalogue.Here is your complete plan:Safety Step: Hide your API Key (Critical for public GitHub repos).The Professional README: A copy-paste version updated with our recent work.The Git Commands: How to save and push everything to GitHub.Step 1: Security Check (Do this first!)Never push secret keys to GitHub. Hackers scan GitHub for these keys.Before we push, let's switch that Chapa key back to an Environment Variable pattern, or at least remove the specific key string for the upload.Open config/settings.py.Find the CHAPA_SECRET_KEY line.Change it to this (so it looks professional but doesn't leak your key):Pythonimport os
-# ... other imports ...
 
-# Use os.environ for security in production
-CHAPA_SECRET_KEY = os.environ.get('CHAPA_SECRET_KEY', 'TEST-KEY-PLACEHOLDER')
-(When you run this locally, you can paste the real key back in, or learn how to use a .env file later. For now, this is safe to push.)Step 2: The New README.mdCreate a new file named README.md in your main folder (overwrite the old one) and paste this entire block in. I have upgraded the language to sound more "Senior Engineer" and added the Payment/Celery sections.Markdown# 🛒 Ecommerce Nexus API
-
-A **production-grade, headless E-commerce backend** built for **reliability, concurrency safety, and seamless payments**.
 
 ![Status](https://img.shields.io/badge/Status-Active_Development-success)
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
