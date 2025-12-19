@@ -1,6 +1,6 @@
 🛒 Ecommerce Nexus API
 
-A production-grade, headless E-commerce backend built for reliability, concurrency safety, and seamless payments.
+A production-grade, headless e-commerce backend built for reliability, concurrency safety, and seamless payments.
 
 
 
@@ -11,82 +11,72 @@ A production-grade, headless E-commerce backend built for reliability, concurren
 
 🚀 Project Overview
 
-Ecommerce Nexus is a RESTful API designed to power modern online marketplaces.
-
-Unlike basic tutorials, this system handles the complexities of real-world commerce:
+Ecommerce Nexus is a RESTful backend powering modern online marketplaces. It handles real-world commerce complexities such as:
 
 high-concurrency inventory locking
 
-payment gateway integration
+asynchronous background task execution
 
-asynchronous task processing
+secure payment workflows
 
-It is built as a Headless API, meaning it can serve any frontend (React, Next.js, Vue, Flutter, etc).
+Built as a Headless API, enabling frontend freedom (React, Angular, Vue, Flutter, etc).
 
 🌟 Key Features
 
-📦 Product Catalogue
-Recursive categories, brand management, and product variants (size, color)
+📦 Catalogue System — recursive product categories + variants
 
-🛒 Smart Cart
-Persistent carts with stock validation + merging logic
+🛒 Smart Cart — persistent carts w/ merge + validation
 
-💳 Chapa Payments
-Payment initiation + verification + webhook callbacks
+💳 Payments — integrated Chapa payment gateway
 
-⚡ Celery + Redis
-For async background tasks (email receipts, payment checks)
+⚡ Async Tasks — Celery workers with Redis broker
 
-🛡️ Concurrency Safety
-Atomic DB transactions to prevent overselling during high-traffic events
+🛡️ Concurrency Safety — PostgreSQL row-level locks + transaction.atomic()
 
-🎯 Distributed Architecture
-1. Solving the “Overselling” Problem
+🎯 Core Architecture Concepts
+🔐 Solving the Overselling Problem
 
-Scenario:
-Two users try to order the last pair of sneakers at the exact same time.
+When two customers attempt to buy the last product simultaneously:
 
-Solution implemented:
+inventory rows are locked using pessimistic locking
 
-Pessimistic row-level locking using PostgreSQL + transaction.atomic
+concurrent transactions wait or gracefully fail
 
-prevents race conditions on inventory rows
+ensures product stock never becomes negative
 
-concurrent requests wait or fail gracefully
+💳 Payment Flow (Chapa)
 
-2. Payment Flow (Chapa)
+Checkout request received
 
-User submits checkout
+Total calculated + session initiated with Chapa
 
-API calculates totals and requests payment session from Chapa
+Customer redirected to complete payment
 
-User completes payment on Chapa
+Chapa redirects back with transaction reference
 
-Chapa redirects to API callback
+API verifies payment
 
-API verifies reference
-
-Order status updated → async receipt email sent
+Order marked completed + Celery sends receipt email asynchronously
 
 🛠 Tech Stack
-Component	Technology	Purpose
-Framework	Django + DRF	API Logic
-Auth	JWT (SimpleJWT)	Stateless authentication
-Database	PostgreSQL 15	Relational storage
-Cache/Broker	Redis	Caching + message queue
-Workers	Celery	Async tasks/receipts
-Payments	Chapa API	Payment provider
-Infrastructure	Docker + Compose	Container orchestration
+Component	Technology
+Framework	Django + Django REST Framework
+Database	PostgreSQL 15
+Cache / Broker	Redis
+Async Workers	Celery
+Authentication	JWT (SimpleJWT)
+Containerization	Docker + Docker Compose
+Payment Provider	Chapa API
 📂 Project Structure
 ecommerce_catalogue/
-├── config/                 # Settings, URLs, WSGI
-├── catalogue/              # Product + category + variants
-├── cart/                   # Cart + cart items
-├── orders/                 # Order + payment logic
-│   ├── tasks.py            # Celery tasks for receipt emails
-│   └── views.py            # Payment verification + transactions
-├── docker-compose.yml      # Redis + DB + Celery + Web
-└── requirements.txt        # Python dependencies
+├── config/                # Core settings, URLs, WSGI
+├── catalogue/             # Product + category + variant models/API
+├── cart/                  # Cart + cart item management
+├── orders/                # Orders + payments
+│   ├── tasks.py           # Celery async tasks
+│   └── views.py           # Payment verification + transactions
+├── docker-compose.yml     # DB + Redis + Celery + Django services
+└── requirements.txt       # Python dependencies
 
 🏁 Getting Started
 🔧 Prerequisites
@@ -95,35 +85,29 @@ Docker Desktop installed
 
 Git installed
 
-1️⃣ Clone the Repo
+1️⃣ Clone Repository
 git clone https://github.com/YOUR_GITHUB_USERNAME/ecommerce_catalogue.git
 cd ecommerce_catalogue
 
-2️⃣ Run With Docker
-
-This spins up Django + PostgreSQL + Redis + Celery automatically.
-
+2️⃣ Build & Start Containers
 docker compose up --build
 
-3️⃣ Create Superuser
+3️⃣ Create Django Admin User
 docker compose exec web python manage.py createsuperuser
 
-🔌 API Endpoints (Quick Reference)
+🔌 API Endpoints Overview
 Method	Endpoint	Description
-GET	/api/docs/	Swagger + ReDocs
+GET	/api/docs/	Swagger + Redoc auto-docs
 GET	/api/v1/catalogue/products/	List products
-POST	/api/v1/cart/	Create shopping cart
-POST	/api/v1/orders/	Place order + inventory lock
-POST	/api/v1/payment/initiate/{id}/	Initiate Chapa payment
-GET	/api/v1/payment/verify/{ref}/	Verify payment + send receipt
-🧪 Testing
-
-Run automated test suite inside Docker container:
-
+POST	/api/v1/cart/	Create cart
+POST	/api/v1/orders/	Checkout + lock inventory
+POST	/api/v1/payment/initiate/{id}/	Create Chapa payment session
+GET	/api/v1/payment/verify/{ref}/	Verify Chapa payment
+🧪 Run Tests
 docker compose exec web python manage.py test
 
 👨‍💻 Author
 
-Wandile Khanyile – Backend Developer
+Wandile Khanyile — Backend Developer
 
-Built with Django, Docker, and coffee ☕
+Built with Django, DRF, Docker and ☕
