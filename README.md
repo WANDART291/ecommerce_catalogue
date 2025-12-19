@@ -1,105 +1,54 @@
-# 🛒 Ecommerce Catalogue API
+# 🛒 Ecommerce Nexus API
 
-A **production-grade, transactional E-commerce backend** built for **reliability, scalability, and data consistency**.
+A **production-grade, headless E-commerce backend** built for **reliability, concurrency safety, and seamless payments**.
 
-**Tech Stack:** Django · Django REST Framework · PostgreSQL · Docker · Celery · Redis
+![Status](https://img.shields.io/badge/Status-Active_Development-success)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Django](https://img.shields.io/badge/Django-5.0-green)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED)
 
 ---
 
 ## 🚀 Project Overview
 
-**Ecommerce Catalogue API** is a **headless backend system** designed to power modern online marketplaces.
+**Ecommerce Nexus** is a RESTful API designed to power modern online marketplaces. Unlike basic tutorials, this system handles the **complexities of real-world commerce**: high-concurrency inventory locking, payment gateway integration, and asynchronous communication.
 
-It goes beyond basic CRUD operations to handle **real-world commerce requirements**, including:
+It is built as a **Headless API**, meaning it can serve any frontend (React, Vue, Mobile Apps) indiscriminately.
 
-- Recursive product categorization  
-- Flexible product variant modeling  
-- Safe inventory management under concurrency  
-- Transactional checkout processing  
-- Asynchronous background tasks  
-
-The system is designed with **production reliability** as a first-class concern.
-
----
-
-## 🎯 Key Problem Solved
-
-### Preventing Overselling Under High Traffic
-
-During peak traffic events (e.g. flash sales or Black Friday), multiple customers may attempt to purchase the same product simultaneously.
-
-This backend prevents **overselling** by:
-
-- Using **atomic database transactions**
-- Locking inventory rows during checkout
-- Ensuring order creation and stock deduction occur **as a single operation**
-
-If inventory is insufficient, the transaction is automatically rolled back.
+### 🌟 Key Features
+- **📦 Product Catalogue:** Recursive categories, brand management, and flexible product variants (Size/Color).
+- **🛒 Smart Cart:** Persistent cart logic with stock validation.
+- **💳 Payments (Chapa):** Integrated Chapa Payment Gateway with verification callbacks and webhook handling.
+- **⚡ Async Tasks:** Uses **Celery & Redis** to handle non-blocking tasks (e.g., sending email receipts) without slowing down the server.
+- **🛡️ Concurrency Safety:** Uses database transactions (`transaction.atomic`) to prevent "overselling" during high-traffic events.
 
 ---
 
-## ⚙️ Order Processing Flow (Conceptual)
+## 🎯 The Architecture
 
-1. User submits a checkout request  
-2. Server opens a database transaction  
-3. Cart items and inventory levels are validated  
-4. If stock is available:
-   - Order is created
-   - Inventory is deducted
-   - Cart is cleared
-5. If stock is unavailable:
-   - Transaction is rolled back
-   - User receives an error response
-6. Order confirmation email is sent asynchronously via Celery  
+### 1. The "Overselling" Problem & Solution
+**Scenario:** Two users try to buy the last pair of sneakers at the exact same millisecond.
+**Solution:** This API implements **Pessimistic Locking**. When a checkout begins, the specific inventory rows are locked in the PostgreSQL database. The second request is forced to wait or fail gracefully, ensuring inventory never drops below zero.
 
-This approach guarantees **data integrity and consistency** under concurrency.
+### 2. Payment Flow (Chapa Integration)
+1. **Initiate:** User requests checkout; Server calculates total and contacts Chapa API.
+2. **Redirect:** User is redirected to Chapa's secure payment page.
+3. **Verify:** Upon success, Chapa redirects user back to our API.
+4. **Finalize:** The API verifies the transaction reference (`tx_ref`), updates the Order status to `Completed`, and triggers an email receipt.
 
 ---
 
-## 🗂️ ERD (Entity Relationship Diagram)
+## 🛠️ Tech Stack
 
-BRAND 1 ─────── ∞ PRODUCT
-
-PRODUCT 1 ───── ∞ PRODUCT_IMAGE
-
-PRODUCT 1 ───── ∞ PRODUCT_VARIANT
-
-PRODUCT ∞ ───── ∞ CATEGORY
-(via PRODUCT_CATEGORY)
-
-CATEGORY 1 ───── ∞ CATEGORY
-(parent → child, recursive)
-
-PRODUCT_VARIANT ∞ ───── ∞ ATTRIBUTE_VALUE
-(via VARIANT_ATTRIBUTE_VALUE)
-
-ATTRIBUTE 1 ───── ∞ ATTRIBUTE_VALUE
-
-
-### ERD Notes
-
-- A **Brand** can have many **Products**
-- **Products** can belong to multiple **Categories**
-- **Categories** support recursive parent–child relationships
-- Each **Product** can have multiple **Variants**
-- Variants are defined by **attribute combinations** (e.g. Size, Color)
-- Inventory is tracked at the **variant level**
-- Products support multiple images with ordering
-
-This schema supports **scalable catalog modeling** and **safe transactional operations**.
-
----
-
-## 🛠️ Technology Stack
-
-| Component | Technology | Purpose |
-|---------|------------|---------|
-| Backend Framework | Django & DRF | Core API and business logic |
-| Database | PostgreSQL 15 | Relational data storage |
-| Transactions | Atomic DB Transactions | Prevent race conditions |
-| Async Tasks | Celery & Redis | Background jobs & email delivery |
-| Authentication | JWT (Djoser) | Secure, stateless authentication |
-| API Docs | Swagger / OpenAPI | Interactive API documentation |
+| Component | Technology | Role |
+|:---|:---|:---|
+| **Core Framework** | Django & DRF | API Logic & ORM |
+| **Database** | PostgreSQL 15 | Relational Data Storage |
+| **Caching/Broker** | Redis | Caching & Task Message Broker |
+| **Async Workers** | Celery | Background Task Processing (Emails) |
+| **Payments** | Chapa API | Payment Gateway Integration |
+| **Containerization** | Docker & Compose | Orchestration & Environment Consistency |
+| **Auth** | JWT (SimpleJWT) | Stateless Authentication |
 
 ---
 
@@ -107,69 +56,162 @@ This schema supports **scalable catalog modeling** and **safe transactional oper
 
 ```bash
 ecommerce_catalogue/
-├── config/             # Project settings and URL routing
-├── catalogue/          # Products, brands, categories, attributes
-├── cart/               # Shopping cart logic
-├── orders/             # Order processing & transactional logic
-│   ├── tasks.py        # Celery background jobs
-│   └── views.py        # Atomic checkout implementation
-├── docker-compose.yml  # Container orchestration
-└── requirements.txt    # Python dependencies
+├── config/             # Settings, URLs, and WSGI config
+├── catalogue/          # Product management (Models: Product, Category, Variant)
+├── cart/               # Cart logic (Models: Cart, CartItem)
+├── orders/             # Transactional logic (Models: Order, Payment)
+│   ├── tasks.py        # Celery tasks for async emails
+│   └── views.py        # Payment verification & atomic transactions
+├── docker-compose.yml  # Docker services (Web, DB, Redis, Celery)
+└── requirements.txt    # Dependencies
 
-🔌 API Endpoints
-Feature	Method	Endpoint	Description
-API Docs	GET	/api/docs/	Swagger UI
-Auth	POST	/auth/jwt/create/	Obtain JWT tokens
-Products	GET	/api/v1/catalogue/products/	List products
-Cart	POST	/api/v1/cart/	Add items to cart
-Orders	POST	/api/v1/orders/	Checkout & lock inventory
-🏁 Getting Started
-1️⃣ Clone & Run with Docker
-git clone https://github.com/WANDART291/ecommerce_catalogue.git
+This is a very smart move. A high-quality README.md is what separates "student projects" from "professional portfolios." Recruiters often look at the README before looking at the code.Since we just added Payments (Chapa) and Email Notifications (Celery), we need to add those to the documentation so people know this is a fully functional e-commerce backend, not just a catalogue.Here is your complete plan:Safety Step: Hide your API Key (Critical for public GitHub repos).The Professional README: A copy-paste version updated with our recent work.The Git Commands: How to save and push everything to GitHub.Step 1: Security Check (Do this first!)Never push secret keys to GitHub. Hackers scan GitHub for these keys.Before we push, let's switch that Chapa key back to an Environment Variable pattern, or at least remove the specific key string for the upload.Open config/settings.py.Find the CHAPA_SECRET_KEY line.Change it to this (so it looks professional but doesn't leak your key):Pythonimport os
+# ... other imports ...
+
+# Use os.environ for security in production
+CHAPA_SECRET_KEY = os.environ.get('CHAPA_SECRET_KEY', 'TEST-KEY-PLACEHOLDER')
+(When you run this locally, you can paste the real key back in, or learn how to use a .env file later. For now, this is safe to push.)Step 2: The New README.mdCreate a new file named README.md in your main folder (overwrite the old one) and paste this entire block in. I have upgraded the language to sound more "Senior Engineer" and added the Payment/Celery sections.Markdown# 🛒 Ecommerce Nexus API
+
+A **production-grade, headless E-commerce backend** built for **reliability, concurrency safety, and seamless payments**.
+
+![Status](https://img.shields.io/badge/Status-Active_Development-success)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Django](https://img.shields.io/badge/Django-5.0-green)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED)
+
+---
+
+## 🚀 Project Overview
+
+**Ecommerce Nexus** is a RESTful API designed to power modern online marketplaces. Unlike basic tutorials, this system handles the **complexities of real-world commerce**: high-concurrency inventory locking, payment gateway integration, and asynchronous communication.
+
+It is built as a **Headless API**, meaning it can serve any frontend (React, Vue, Mobile Apps) indiscriminately.
+
+### 🌟 Key Features
+- **📦 Product Catalogue:** Recursive categories, brand management, and flexible product variants (Size/Color).
+- **🛒 Smart Cart:** Persistent cart logic with stock validation.
+- **💳 Payments (Chapa):** Integrated Chapa Payment Gateway with verification callbacks and webhook handling.
+- **⚡ Async Tasks:** Uses **Celery & Redis** to handle non-blocking tasks (e.g., sending email receipts) without slowing down the server.
+- **🛡️ Concurrency Safety:** Uses database transactions (`transaction.atomic`) to prevent "overselling" during high-traffic events.
+
+---
+
+## 🎯 The Architecture
+
+### 1. The "Overselling" Problem & Solution
+**Scenario:** Two users try to buy the last pair of sneakers at the exact same millisecond.
+**Solution:** This API implements **Pessimistic Locking**. When a checkout begins, the specific inventory rows are locked in the PostgreSQL database. The second request is forced to wait or fail gracefully, ensuring inventory never drops below zero.
+
+### 2. Payment Flow (Chapa Integration)
+1. **Initiate:** User requests checkout; Server calculates total and contacts Chapa API.
+2. **Redirect:** User is redirected to Chapa's secure payment page.
+3. **Verify:** Upon success, Chapa redirects user back to our API.
+4. **Finalize:** The API verifies the transaction reference (`tx_ref`), updates the Order status to `Completed`, and triggers an email receipt.
+
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology | Role |
+|:---|:---|:---|
+| **Core Framework** | Django & DRF | API Logic & ORM |
+| **Database** | PostgreSQL 15 | Relational Data Storage |
+| **Caching/Broker** | Redis | Caching & Task Message Broker |
+| **Async Workers** | Celery | Background Task Processing (Emails) |
+| **Payments** | Chapa API | Payment Gateway Integration |
+| **Containerization** | Docker & Compose | Orchestration & Environment Consistency |
+| **Auth** | JWT (SimpleJWT) | Stateless Authentication |
+
+---
+
+## 📂 Project Structure
+
+```bash
+ecommerce_catalogue/
+├── config/             # Settings, URLs, and WSGI config
+├── catalogue/          # Product management (Models: Product, Category, Variant)
+├── cart/               # Cart logic (Models: Cart, CartItem)
+├── orders/             # Transactional logic (Models: Order, Payment)
+│   ├── tasks.py        # Celery tasks for async emails
+│   └── views.py        # Payment verification & atomic transactions
+├── docker-compose.yml  # Docker services (Web, DB, Redis, Celery)
+└── requirements.txt    # Dependencies
+
+This is a very smart move. A high-quality README.md is what separates "student projects" from "professional portfolios." Recruiters often look at the README before looking at the code.Since we just added Payments (Chapa) and Email Notifications (Celery), we need to add those to the documentation so people know this is a fully functional e-commerce backend, not just a catalogue.Here is your complete plan:Safety Step: Hide your API Key (Critical for public GitHub repos).The Professional README: A copy-paste version updated with our recent work.The Git Commands: How to save and push everything to GitHub.Step 1: Security Check (Do this first!)Never push secret keys to GitHub. Hackers scan GitHub for these keys.Before we push, let's switch that Chapa key back to an Environment Variable pattern, or at least remove the specific key string for the upload.Open config/settings.py.Find the CHAPA_SECRET_KEY line.Change it to this (so it looks professional but doesn't leak your key):Pythonimport os
+# ... other imports ...
+
+# Use os.environ for security in production
+CHAPA_SECRET_KEY = os.environ.get('CHAPA_SECRET_KEY', 'TEST-KEY-PLACEHOLDER')
+(When you run this locally, you can paste the real key back in, or learn how to use a .env file later. For now, this is safe to push.)Step 2: The New README.mdCreate a new file named README.md in your main folder (overwrite the old one) and paste this entire block in. I have upgraded the language to sound more "Senior Engineer" and added the Payment/Celery sections.Markdown# 🛒 Ecommerce Nexus API
+
+A **production-grade, headless E-commerce backend** built for **reliability, concurrency safety, and seamless payments**.
+
+![Status](https://img.shields.io/badge/Status-Active_Development-success)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Django](https://img.shields.io/badge/Django-5.0-green)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED)
+
+---
+
+## 🚀 Project Overview
+
+**Ecommerce Nexus** is a RESTful API designed to power modern online marketplaces. Unlike basic tutorials, this system handles the **complexities of real-world commerce**: high-concurrency inventory locking, payment gateway integration, and asynchronous communication.
+
+It is built as a **Headless API**, meaning it can serve any frontend (React, Vue, Mobile Apps) indiscriminately.
+
+### 🌟 Key Features
+- **📦 Product Catalogue:** Recursive categories, brand management, and flexible product variants (Size/Color).
+- **🛒 Smart Cart:** Persistent cart logic with stock validation.
+- **💳 Payments (Chapa):** Integrated Chapa Payment Gateway with verification callbacks and webhook handling.
+- **⚡ Async Tasks:** Uses **Celery & Redis** to handle non-blocking tasks (e.g., sending email receipts) without slowing down the server.
+- **🛡️ Concurrency Safety:** Uses database transactions (`transaction.atomic`) to prevent "overselling" during high-traffic events.
+
+---
+
+## 🎯 The Architecture
+
+### 1. The "Overselling" Problem & Solution
+**Scenario:** Two users try to buy the last pair of sneakers at the exact same millisecond.
+**Solution:** This API implements **Pessimistic Locking**. When a checkout begins, the specific inventory rows are locked in the PostgreSQL database. The second request is forced to wait or fail gracefully, ensuring inventory never drops below zero.
+
+### 2. Payment Flow (Chapa Integration)
+1. **Initiate:** User requests checkout; Server calculates total and contacts Chapa API.
+2. **Redirect:** User is redirected to Chapa's secure payment page.
+3. **Verify:** Upon success, Chapa redirects user back to our API.
+4. **Finalize:** The API verifies the transaction reference (`tx_ref`), updates the Order status to `Completed`, and triggers an email receipt.
+
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology | Role |
+|:---|:---|:---|
+| **Core Framework** | Django & DRF | API Logic & ORM |
+| **Database** | PostgreSQL 15 | Relational Data Storage |
+| **Caching/Broker** | Redis | Caching & Task Message Broker |
+| **Async Workers** | Celery | Background Task Processing (Emails) |
+| **Payments** | Chapa API | Payment Gateway Integration |
+| **Containerization** | Docker & Compose | Orchestration & Environment Consistency |
+| **Auth** | JWT (SimpleJWT) | Stateless Authentication |
+
+---
+
+## 📂 Project Structure
+
+```bash
+ecommerce_catalogue/
+├── config/             # Settings, URLs, and WSGI config
+├── catalogue/          # Product management (Models: Product, Category, Variant)
+├── cart/               # Cart logic (Models: Cart, CartItem)
+├── orders/             # Transactional logic (Models: Order, Payment)
+│   ├── tasks.py        # Celery tasks for async emails
+│   └── views.py        # Payment verification & atomic transactions
+├── docker-compose.yml  # Docker services (Web, DB, Redis, Celery)
+└── requirements.txt    # Dependencies
+🏁 Getting StartedPrerequisitesDocker Desktop installedGit1️⃣ Clone the RepoBashgit clone [https://github.com/YOUR_GITHUB_USERNAME/ecommerce_catalogue.git](https://github.com/YOUR_GITHUB_USERNAME/ecommerce_catalogue.git)
 cd ecommerce_catalogue
-docker compose up --build
+2️⃣ Run with DockerThis command spins up the Django Server, PostgreSQL, Redis, and Celery Worker automatically.Bashdocker compose up --build
+3️⃣ Create SuperuserOnce the containers are running, create an admin account to manage the catalogue.Bashdocker compose exec web python manage.py createsuperuser
+🔌 API Endpoints (Quick Reference)MethodEndpointDescriptionGET/api/docs/Swagger UI (Full Documentation)GET/api/v1/catalogue/products/List all productsPOST/api/v1/cart/Create a shopping cartPOST/api/v1/orders/Place an order (Locks inventory)POST/api/v1/payment/initiate/{id}/Get Chapa Payment LinkGET/api/v1/payment/verify/{ref}/Verify Payment & Send Receipt🧪 TestingTo run the automated test suite inside the container:Bashdocker compose exec web python manage.py test
+👨‍💻 AuthorWandile Khanyile - Backend DeveloperBuilt with Django, Docker, and Coffee ☕
 
-2️⃣ Environment Variables (Optional)
-
-Create a .env file in the project root:
-
-POSTGRES_DB=ecommerce_nexus
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=admin123
-DB_HOST=db
-REDIS_HOST=redis
-SECRET_KEY=your-secret-key-here
-
-3️⃣ Database Setup
-# Apply migrations
-docker compose exec web python manage.py migrate
-
-# Create admin user
-docker compose exec web python manage.py createsuperuser
-
-🌐 Access Points
-
-API Root: http://localhost:8000/api/v1/
-
-Swagger Docs: http://localhost:8000/api/docs/
-
-Admin Panel: http://localhost:8000/admin/
-
-🧪 Testing
-
-The project includes tests covering:
-
-Model integrity
-
-API behavior
-
-Transaction safety
-
-Run tests with:
-
-docker compose exec web python manage.py test catalogue
-
-👨‍💻 Author
-
-Wandile Khanyile
-Built with production-ready backend principles 🚀

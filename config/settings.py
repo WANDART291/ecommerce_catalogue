@@ -166,3 +166,12 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+# --- CHAPA CONFIGURATION ---
+# We are NOT using os.environ.get here because we want the value directly.
+CHAPA_SECRET_KEY = os.environ.get('CHAPA_SECRET_KEY', 'TEST-KEY-PLACEHOLDER')
+
+# --- EMAIL CONFIGURATION ---
+# Prints emails to the console (Terminal) instead of sending them.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST_USER = 'no-reply@ecommerce.com'
