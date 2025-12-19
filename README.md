@@ -65,9 +65,49 @@ ecommerce_catalogue/
 ├── docker-compose.yml  # Docker services (Web, DB, Redis, Celery)
 └── requirements.txt    # Dependencies
 
+This is a very smart move. A high-quality README.md is what separates "student projects" from "professional portfolios." Recruiters often look at the README before looking at the code.
 
+Since we just added Payments (Chapa) and Email Notifications (Celery), we need to add those to the documentation so people know this is a fully functional e-commerce backend, not just a catalogue.
 
+Here is your complete plan:
 
+Safety Step: Hide your API Key (Critical for public GitHub repos).
+
+The Professional README: A copy-paste version updated with our recent work.
+
+The Git Commands: How to save and push everything to GitHub.
+
+Step 1: Security Check (Do this first!)
+Never push secret keys to GitHub. Hackers scan GitHub for these keys. Before we push, let's switch that Chapa key back to an Environment Variable pattern, or at least remove the specific key string for the upload.
+
+Open config/settings.py.
+
+Find the CHAPA_SECRET_KEY line.
+
+Change it to this (so it looks professional but doesn't leak your key):
+
+Python
+
+import os
+# ... other imports ...
+
+# Use os.environ for security in production
+CHAPA_SECRET_KEY = os.environ.get('CHAPA_SECRET_KEY', 'TEST-KEY-PLACEHOLDER')
+(When you run this locally, you can paste the real key back in, or learn how to use a .env file later. For now, this is safe to push.)
+
+Step 2: The New README.md
+Create a new file named README.md in your main folder (overwrite the old one) and paste this entire block in. I have upgraded the language to sound more "Senior Engineer" and added the Payment/Celery sections.
+
+Markdown
+
+# 🛒 Ecommerce Nexus API
+
+A **production-grade, headless E-commerce backend** built for **reliability, concurrency safety, and seamless payments**.
+
+![Status](https://img.shields.io/badge/Status-Active_Development-success)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Django](https://img.shields.io/badge/Django-5.0-green)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED)
 
 ---
 
@@ -126,18 +166,41 @@ ecommerce_catalogue/
 │   └── views.py        # Payment verification & atomic transactions
 ├── docker-compose.yml  # Docker services (Web, DB, Redis, Celery)
 └── requirements.txt    # Dependencies
+
 🏁 Getting Started
+
 Prerequisites
+
 Docker Desktop installed
 Git
+
 1️⃣ Clone the Repo
 git clone [https://github.com/YOUR_GITHUB_USERNAME/ecommerce_catalogue.git](https://github.com/YOUR_GITHUB_USERNAME/ecommerce_catalogue.git)
 cd ecommerce_catalogue
-2️⃣ Run with DockerThis command spins up the Django Server, PostgreSQL, Redis, and Celery Worker automatically.Bashdocker compose up --build
-3️⃣ Create SuperuserOnce the containers are running, create an admin account to manage the catalogue.Bashdocker compose exec web python manage.py createsuperuser
 
-🔌 API Endpoints (Quick Reference)MethodEndpointDescriptionGET/api/docs/Swagger UI (Full Documentation)GET/api/v1/catalogue/products/List all productsPOST/api/v1/cart/Create a shopping cartPOST/api/v1/orders/Place an order (Locks inventory)POST/api/v1/payment/initiate/{id}/Get Chapa Payment LinkGET/api/v1/payment/verify/{ref}/Verify Payment & Send Receipt
-🧪 TestingTo run the automated test suite inside the container:
-Bashdocker compose exec web python manage.py test
+2️⃣ Run with Docker
+This command spins up the Django Server, PostgreSQL, Redis, and Celery Worker automatically.
+docker compose up --build
 
-👨‍💻 AuthorWandile Khanyile - Backend DeveloperBuilt with Django, Docker, and Coffee ☕
+3️⃣ Create Superuser
+Once the containers are running, create an admin account to manage the catalogue.
+docker compose exec web python manage.py createsuperuser
+
+🔌 API Endpoints (Quick Reference)
+
+Method,Endpoint,Description
+GET,/api/docs/,Swagger UI (Full Documentation)
+GET,/api/v1/catalogue/products/,List all products
+POST,/api/v1/cart/,Create a shopping cart
+POST,/api/v1/orders/,Place an order (Locks inventory)
+POST,/api/v1/payment/initiate/{id}/,Get Chapa Payment Link
+GET,/api/v1/payment/verify/{ref}/,Verify Payment & Send Receipt
+
+🧪 Testing
+To run the automated test suite inside the container:
+docker compose exec web python manage.py test
+
+👨‍💻 Author
+Wandile Khanyile - Backend Developer Built with Django, Docker, and Coffee ☕
+
+
